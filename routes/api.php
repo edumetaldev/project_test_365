@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PassengerController;
 use App\Http\Controllers\ReservationChangeStatusController;
 use App\Http\Controllers\ReservationsController;
 use Illuminate\Http\Request;
@@ -13,3 +14,4 @@ Route::get('/user', function (Request $request) {
 Route::get('/reservations', [ReservationsController::class, 'index']);
 Route::post('/reservations', [ReservationsController::class, 'store']);
 Route::post('/reservations/{reservation}/status', ReservationChangeStatusController::class);
+Route::resource('/passengers', PassengerController::class);
