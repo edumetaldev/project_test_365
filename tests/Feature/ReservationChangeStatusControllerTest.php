@@ -42,7 +42,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status change successfully',
+                'message' => 'Reservation status changed successfully',
                 'data' => [
                     'id' => $this->reservation->id,
                     'status' => 'CONFIRMED'
@@ -75,7 +75,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status change successfully',
+                'message' => 'Reservation status changed successfully',
                 'data' => [
                     'id' => $this->reservation->id,
                     'status' => 'CANCELLED'
@@ -96,7 +96,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status change successfully',
+                'message' => 'Reservation status changed successfully',
                 'data' => [
                     'id' => $this->reservation->id,
                     'status' => 'CHECKED_IN'
@@ -120,7 +120,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status change successfully',
+                'message' => 'Reservation status changed successfully',
                 'data' => [
                     'id' => $this->reservation->id,
                     'status' => 'PENDING'
@@ -162,10 +162,10 @@ final class ReservationChangeStatusControllerTest extends TestCase
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
             ->assertJsonValidationErrors(['status'])
             ->assertJson([
-                'message' => 'The status field is required.',
+                'message' => 'El estado es requerido.',
                 'errors' => [
                     'status' => [
-                        'The status field is required.'
+                        'El estado es requerido.'
                     ]
                 ]
             ]);
@@ -255,7 +255,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status change successfully',
+                'message' => 'Reservation status changed successfully',
                 'data' => [
                     'status' => $status
                 ]
