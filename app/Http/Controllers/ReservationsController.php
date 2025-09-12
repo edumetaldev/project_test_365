@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Passenger;
 use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,12 +32,16 @@ final class ReservationsController extends Controller
             $validated = $request->validate([
                 'flight_number' => 'required|string|max:255',
                 'departure_time' => 'required|date',
-                //'status' => 'sometimes|string|in:PENDING,CONFIRMED,CANCELLED',
                 'passengers' => 'required|array|min:1',
                 'passengers.*.name' => 'required|string|max:255',
                 'passengers.*.document' => 'required|string|max:255',
             ]);
             $reservation = Reservation::create($validated);
+
+            foreach($validated['passengers'] as  $pas)
+            {
+                Passenger::create($pas);
+            }
 
             return response()->json([
                 'data' => $reservation,

@@ -19,7 +19,6 @@ final class ReservationsApiTest extends TestCase
         $reservationData = [
             'flight_number' => 'AA123',
             'departure_time' => '2025-12-25 10:30:00',
-            // 'status' => 'PENDING',
             'passengers' => [
                 [
                     'name' => 'Juan Pérez',
@@ -35,29 +34,33 @@ final class ReservationsApiTest extends TestCase
         $response = $this->postJson('/api/reservations', $reservationData);
 
         $response->assertStatus(Response::HTTP_CREATED)
-                 ->assertJson([
-                     'message' => 'Reservation created successfully',
-                     'data' => [
-                         'flight_number' => 'AA123',
-                         'status' => 'PENDING'
-                     ]
-                 ])
-                 ->assertJsonStructure([
-                     'data' => [
-                         'id',
-                         'flight_number',
-                         'departure_time',
-                        //  'status',
-                         'passengers',
-                         'created_at',
-                         'updated_at'
-                     ],
-                     'message'
-                 ]);
+            ->assertJson([
+                'message' => 'Reservation created successfully',
+                'data' => [
+                    'flight_number' => 'AA123',
+                    'status' => 'PENDING'
+                ]
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'flight_number',
+                    'departure_time',
+                    'passengers',
+                    'created_at',
+                    'updated_at'
+                ],
+                'message'
+            ]);
 
         $this->assertDatabaseHas('reservations', [
             'flight_number' => 'AA123',
             'status' => 'PENDING'
+        ]);
+
+        $this->assertDatabaseHas('passengers', [
+            'name' => 'María García',
+            'document' => '87654321'
         ]);
     }
 
@@ -90,17 +93,17 @@ final class ReservationsApiTest extends TestCase
         $response = $this->postJson('/api/reservations', $invalidData);
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
-                 ->assertJson([
-                     'message' => 'Validation failed'
-                 ])
-                 ->assertJsonStructure([
-                     'message',
-                     'errors' => [
-                         'flight_number',
-                         'departure_time',
-                         'passengers'
-                     ]
-                 ]);
+            ->assertJson([
+                'message' => 'Validation failed'
+            ])
+            ->assertJsonStructure([
+                'message',
+                'errors' => [
+                    'flight_number',
+                    'departure_time',
+                    'passengers'
+                ]
+            ]);
 
         $this->assertDatabaseMissing('reservations', [
             'flight_number' => ''
@@ -123,8 +126,8 @@ final class ReservationsApiTest extends TestCase
         $response = $this->postJson('/api/reservations', $invalidData);
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
-                //  ->assertJsonHasErrors(['passengers.0.document'])
-                 ;
+            //  ->assertJsonHasErrors(['passengers.0.document'])
+        ;
     }
 
 
@@ -133,14 +136,14 @@ final class ReservationsApiTest extends TestCase
         $response = $this->getJson('/api/reservations');
 
         $response->assertStatus(Response::HTTP_OK)
-                 ->assertJson([
-                     'message' => 'Reservations retrieved successfully',
-                     'data' => []
-                 ])
-                 ->assertJsonStructure([
-                     'data',
-                     'message'
-                 ]);
+            ->assertJson([
+                'message' => 'Reservations retrieved successfully',
+                'data' => []
+            ])
+            ->assertJsonStructure([
+                'data',
+                'message'
+            ]);
     }
 
     public function test_can_list_reservations_successfully(): void
@@ -177,35 +180,35 @@ final class ReservationsApiTest extends TestCase
         $response = $this->getJson('/api/reservations');
 
         $response->assertStatus(Response::HTTP_OK)
-                 ->assertJson([
-                     'message' => 'Reservations retrieved successfully',
-                     'data' => [
-                         [
-                             'id' => $reservation1->id,
-                             'flight_number' => 'EE111',
-                             'status' => 'PENDING'
-                         ],
-                         [
-                             'id' => $reservation2->id,
-                             'flight_number' => 'FF222',
-                             'status' => 'CONFIRMED'
-                         ]
-                     ]
-                 ])
-                 ->assertJsonStructure([
-                     'data' => [
-                         '*' => [
-                             'id',
-                             'flight_number',
-                             'departure_time',
-                             'status',
-                             'passengers',
-                             'created_at',
-                             'updated_at'
-                         ]
-                     ],
-                     'message'
-                 ]);
+            ->assertJson([
+                'message' => 'Reservations retrieved successfully',
+                'data' => [
+                    [
+                        'id' => $reservation1->id,
+                        'flight_number' => 'EE111',
+                        'status' => 'PENDING'
+                    ],
+                    [
+                        'id' => $reservation2->id,
+                        'flight_number' => 'FF222',
+                        'status' => 'CONFIRMED'
+                    ]
+                ]
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'flight_number',
+                        'departure_time',
+                        'status',
+                        'passengers',
+                        'created_at',
+                        'updated_at'
+                    ]
+                ],
+                'message'
+            ]);
 
         $this->assertCount(2, $response->json('data'));
     }
@@ -233,13 +236,13 @@ final class ReservationsApiTest extends TestCase
         $response = $this->getJson('/api/reservations');
 
         $response->assertStatus(Response::HTTP_OK)
-                 ->assertJson([
-                     'data' => [
-                         [
-                             'flight_number' => 'GG333',
-                             'passengers' => $passengersData
-                         ]
-                     ]
-                 ]);
+            ->assertJson([
+                'data' => [
+                    [
+                        'flight_number' => 'GG333',
+                        'passengers' => $passengersData
+                    ]
+                ]
+            ]);
     }
 }
