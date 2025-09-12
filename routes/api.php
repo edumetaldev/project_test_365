@@ -13,5 +13,5 @@ Route::get('/user', function (Request $request) {
 // Reservations API Routes
 Route::get('/reservations', [ReservationsController::class, 'index']);
 Route::post('/reservations', [ReservationsController::class, 'store']);
-Route::post('/reservations/{reservation}/status', ReservationChangeStatusController::class);
+Route::post('/reservations/{reservationId}/status', ReservationChangeStatusController::class);
 Route::resource('/passengers', PassengerController::class);

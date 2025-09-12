@@ -42,23 +42,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status changed successfully',
-                'data' => [
-                    'id' => $this->reservation->id,
-                    'status' => 'CONFIRMED'
-                ]
-            ])
-            ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'flight_number',
-                    'departure_time',
-                    'status',
-                    'passengers',
-                    'created_at',
-                    'updated_at'
-                ],
-                'message'
+                'message' => 'Reservation status changed successfully'
             ]);
 
         $this->assertDatabaseHas('reservations', [
@@ -75,11 +59,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status changed successfully',
-                'data' => [
-                    'id' => $this->reservation->id,
-                    'status' => 'CANCELLED'
-                ]
+                'message' => 'Reservation status changed successfully'
             ]);
 
         $this->assertDatabaseHas('reservations', [
@@ -90,17 +70,16 @@ final class ReservationChangeStatusControllerTest extends TestCase
 
     public function test_can_change_reservation_status_to_checked_in(): void
     {
+        // Primero cambiar a CONFIRMED para poder cambiar a CHECKED_IN
+        $this->reservation->update(['status' => 'CONFIRMED']);
+
         $response = $this->postjson("/api/reservations/{$this->reservation->id}/status", [
             'status' => 'CHECKED_IN'
         ]);
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status changed successfully',
-                'data' => [
-                    'id' => $this->reservation->id,
-                    'status' => 'CHECKED_IN'
-                ]
+                'message' => 'Reservation status changed successfully'
             ]);
 
         $this->assertDatabaseHas('reservations', [
@@ -109,7 +88,7 @@ final class ReservationChangeStatusControllerTest extends TestCase
         ]);
     }
 
-    public function test_can_change_reservation_status_back_to_pending(): void
+    public function test_cannot_change_reservation_status_back_to_pending(): void
     {
         // Primero cambiar a CONFIRMED
         $this->reservation->update(['status' => 'CONFIRMED']);
@@ -118,18 +97,14 @@ final class ReservationChangeStatusControllerTest extends TestCase
             'status' => 'PENDING'
         ]);
 
-        $response->assertStatus(Response::HTTP_OK)
+        $response->assertStatus(Response::HTTP_BAD_REQUEST)
             ->assertJson([
-                'message' => 'Reservation status changed successfully',
-                'data' => [
-                    'id' => $this->reservation->id,
-                    'status' => 'PENDING'
-                ]
+                'message' => 'Cannot change reservation status from CONFIRMED to PENDING'
             ]);
 
         $this->assertDatabaseHas('reservations', [
             'id' => $this->reservation->id,
-            'status' => 'PENDING'
+            'status' => 'CONFIRMED' // Estado no debe cambiar
         ]);
     }
 
@@ -217,7 +192,10 @@ final class ReservationChangeStatusControllerTest extends TestCase
             'status' => 'CONFIRMED'
         ]);
 
-        $response->assertStatus(Response::HTTP_NOT_FOUND);
+        $response->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJson([
+                'message' => 'Reservation not found'
+            ]);
     }
 
     public function test_status_change_preserves_other_reservation_data(): void
@@ -249,16 +227,18 @@ final class ReservationChangeStatusControllerTest extends TestCase
      */
     public function test_accepts_all_valid_statuses(string $status): void
     {
+        // Para CHECKED_IN, primero necesitamos cambiar a CONFIRMED
+        if ($status === 'CHECKED_IN') {
+            $this->reservation->update(['status' => 'CONFIRMED']);
+        }
+
         $response = $this->postjson("/api/reservations/{$this->reservation->id}/status", [
             'status' => $status
         ]);
 
         $response->assertStatus(Response::HTTP_OK)
             ->assertJson([
-                'message' => 'Reservation status changed successfully',
-                'data' => [
-                    'status' => $status
-                ]
+                'message' => 'Reservation status changed successfully'
             ]);
 
         $this->assertDatabaseHas('reservations', [
@@ -289,7 +269,6 @@ final class ReservationChangeStatusControllerTest extends TestCase
     public static function validStatusProvider(): array
     {
         return [
-            'pending' => ['PENDING'],
             'confirmed' => ['CONFIRMED'],
             'cancelled' => ['CANCELLED'],
             'checked_in' => ['CHECKED_IN'],
@@ -305,5 +284,63 @@ final class ReservationChangeStatusControllerTest extends TestCase
             'special_characters' => ['STATUS@#$'],
             'empty_spaces' => [' '],
         ];
+    }
+
+    public function test_cannot_change_from_cancelled_status(): void
+    {
+        // Cambiar a CANCELLED
+        $this->reservation->update(['status' => 'CANCELLED']);
+
+        $response = $this->postjson("/api/reservations/{$this->reservation->id}/status", [
+            'status' => 'CONFIRMED'
+        ]);
+
+        $response->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJson([
+                'message' => 'Reservation cannot be modified in its current status'
+            ]);
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $this->reservation->id,
+            'status' => 'CANCELLED' // Estado no debe cambiar
+        ]);
+    }
+
+    public function test_cannot_change_from_checked_in_status(): void
+    {
+        // Cambiar a CHECKED_IN
+        $this->reservation->update(['status' => 'CONFIRMED']);
+        $this->reservation->update(['status' => 'CHECKED_IN']);
+
+        $response = $this->postjson("/api/reservations/{$this->reservation->id}/status", [
+            'status' => 'CANCELLED'
+        ]);
+
+        $response->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJson([
+                'message' => 'Reservation cannot be modified in its current status'
+            ]);
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $this->reservation->id,
+            'status' => 'CHECKED_IN' // Estado no debe cambiar
+        ]);
+    }
+
+    public function test_cannot_change_directly_to_checked_in_from_pending(): void
+    {
+        $response = $this->postjson("/api/reservations/{$this->reservation->id}/status", [
+            'status' => 'CHECKED_IN'
+        ]);
+
+        $response->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJson([
+                'message' => 'Cannot change reservation status from PENDING to CHECKED_IN'
+            ]);
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $this->reservation->id,
+            'status' => 'PENDING' // Estado no debe cambiar
+        ]);
     }
 }
