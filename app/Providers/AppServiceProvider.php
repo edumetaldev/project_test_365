@@ -8,6 +8,8 @@ use App\Application\Reservation\Handlers\ChangeReservationStatusHandler;
 use App\Domain\Reservation\Repositories\ReservationRepositoryInterface;
 use App\Domain\Reservation\Services\ReservationStatusService;
 use App\Infrastructure\Reservation\Repositories\EloquentReservationRepository;
+use App\Models\Reservation;
+use App\Observers\ReservationObserver;
 use Illuminate\Support\ServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
@@ -44,6 +46,7 @@ final class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // User::observe(UserObserver::class);
+        Reservation::observe(ReservationObserver::class);
     }
 }
