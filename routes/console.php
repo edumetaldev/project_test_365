@@ -1,6 +1,5 @@
 <?php
 
-use App\Application\Reservation\Commands\ChangeReservationStatusCommand;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -8,4 +7,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command(ChangeReservationStatusCommand::class)->everyFiveSeconds();
+Schedule::command('app:change-status-trigger-command')->everyFiveSeconds();
