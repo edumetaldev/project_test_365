@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Events\ReservationUpdated;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Log;
 
@@ -29,6 +30,9 @@ class ReservationObserver
             'status' => $reservation->status,
             'updated_at' => $reservation->updated_at
         ]);
+
+        event(new ReservationUpdated($reservation));
+
     }
 
     /**
