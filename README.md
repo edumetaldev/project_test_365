@@ -130,6 +130,67 @@ El proyecto sigue arquitectura DDD con las siguientes capas:
 - `GET /api/reservations` - Listar reservas
 - `PUT /api/reservations/{id}/status` - Cambiar estado de reserva
 
+## Scripts de Node.js (WebSocket y Redis)
+
+El proyecto incluye scripts de Node.js para manejar comunicación en tiempo real mediante WebSockets y Redis.
+
+### Instalación de dependencias Node.js
+```bash
+cd node
+npm install
+```
+
+### Scripts disponibles
+
+#### 1. Servidor WebSocket (`server.js`)
+Servidor que escucha eventos de Redis y los transmite via WebSocket:
+
+```bash
+cd node
+node server.js
+```
+
+Este script:
+- Se conecta a Redis en `redis://127.0.0.1:6379`
+- Escucha todos los canales Redis (`*`)
+- Parsea mensajes JSON y los transmite via WebSocket
+- Escucha en el puerto 3000
+
+#### 2. Cliente de prueba (`client.js`)
+Cliente simple para probar la conexión WebSocket:
+
+```bash
+cd node
+node client.js
+```
+
+Este script:
+- Se conecta al servidor WebSocket en `http://127.0.0.1:3000`
+- Escucha eventos `reservation.updated`
+- Muestra los datos recibidos en consola
+
+### Requisitos para los scripts Node.js
+
+- **Redis**: Debe estar ejecutándose en `127.0.0.1:6379`
+- **Node.js**: Versión 18+ (para soporte de ES modules)
+
+### Ejecutar con Docker
+
+Si usas Docker para Redis:
+
+```bash
+# Iniciar Redis con Docker
+docker run -d -p 6379:6379 redis:alpine
+
+# Ejecutar servidor WebSocket
+cd node
+node server.js
+
+# En otra terminal, ejecutar cliente de prueba
+cd node
+node client.js
+```
+
 ## Tecnologías Utilizadas
 
 - **Backend**: Laravel 12, PHP 8.2+
@@ -137,4 +198,5 @@ El proyecto sigue arquitectura DDD con las siguientes capas:
 - **Base de datos**: SQLite (por defecto) / MariaDB
 - **Testing**: PHPUnit
 - **Arquitectura**: DDD (Domain Driven Design)
+- **Tiempo Real**: Node.js, Socket.IO, Redis
 
