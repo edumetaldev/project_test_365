@@ -5,9 +5,10 @@ namespace App\Events;
 use App\Models\Reservation;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Queue\SerializesModels;
 
-class ReservationUpdated implements ShouldBroadcast
+class ReservationUpdated implements ShouldBroadcastNow
 {
     use SerializesModels;
 
@@ -15,13 +16,14 @@ class ReservationUpdated implements ShouldBroadcast
 
     public function __construct(Reservation $reservation)
     {
-        $this->reservation = $reservation->load('passengers');
+        $this->reservation = $reservation;
     }
 
     public function broadcastOn()
     {
         // Canal de Redis
-        return new Channel('reservations');
+        //return new Channel('reservations');
+        return ['reservations'];
     }
 
     public function broadcastAs()

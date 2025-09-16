@@ -8,6 +8,7 @@ use App\Application\Reservation\Commands\ChangeReservationStatusCommand;
 use App\Application\Reservation\Handlers\ChangeReservationStatusHandler;
 use App\Domain\Reservation\ValueObjects\ReservationId;
 use App\Domain\Reservation\ValueObjects\ReservationStatus;
+use App\Events\ReservationUpdated;
 use App\Models\Reservation;
 use Illuminate\Console\Command;
 
@@ -38,40 +39,24 @@ final class ChangeStatusTriggerCommand extends Command
      */
     public function handle(): int
     {
-        try {
-            // Obtener una reservación aleatoria
-            $randomReservation = Reservation::inRandomOrder()->first();
 
-            if (!$randomReservation) {
-                $this->error('No hay reservaciones disponibles en la base de datos.');
-                return self::FAILURE;
+            while (true) {
+                $reservation = Reservation::inRandomOrder()->first();
+                if ($reservation) {
+                    $newStatus = \Arr::random(['CONFIRMED','CANCELLED','CHECKED_IN']);
+                    $reservation->status = $newStatus;
+                    $reservation->save();
+
+                   // event(new ReservationUpdated($reservation));
+                }
+                $this->info(sprintf(
+                    'Status cambiado exitosamente para la reservación ID %d de "%s" a "%s"',
+                    $reservation->id,
+                    $newStatus,
+                    $reservation->status,
+                ));
+                sleep(5);
             }
-
-            // Generar un status aleatorio válido
-            $randomStatus = $this->getRandomStatus();
-
-            // Crear el comando con los parámetros aleatorios
-            $command = new ChangeReservationStatusCommand(
-                new ReservationId($randomReservation->id),
-                $randomStatus
-            );
-
-            // Ejecutar el comando
-            $this->handler->handle($command);
-
-            $this->info(sprintf(
-                'Status cambiado exitosamente para la reservación ID %d de "%s" a "%s"',
-                $randomReservation->id,
-                $randomReservation->status,
-                $randomStatus->value()
-            ));
-
-            return self::SUCCESS;
-
-        } catch (\Exception $e) {
-            $this->error('Error al cambiar el status: ' . $e->getMessage());
-            return self::FAILURE;
-        }
     }
 
     /**
